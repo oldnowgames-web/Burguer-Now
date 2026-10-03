@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#131822">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Burguer Now - Simulador de Hamburgueria</title>
+    <!-- Tailwind CSS para interface elegante -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&family=Titan+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="menu relative w-screen h-screen overflow-hidden text-white">
+
+    <!-- INTERFACE DO JOGO (HUD) -->
+    <div id="ui" class="absolute top-4 left-4 z-10 w-full max-w-sm flex flex-col gap-3 pointer-events-none">
+        
+        <!-- Placa de Status Principal -->
+        <div class="hud-glass pointer-events-auto bg-gray-900/90 backdrop-blur-md p-4 rounded-2xl border border-gray-700/60 shadow-2xl">
+            <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+                <div>
+                    <span class="lbl text-xs uppercase tracking-wider text-gray-400 font-semibold block">Caixa do Dia</span>
+                    <span class="money-big text-3xl font-extrabold text-emerald-400 tracking-tight">$<span id="money">0.00</span></span>
+                </div>
+                <div class="text-right">
+                    <span class="lbl text-xs uppercase tracking-wider text-gray-400 font-semibold block">Erros Tolerados</span>
+                    <div class="flex items-center gap-1 justify-end mt-1">
+                        <span id="error-badges" class="flex gap-1 text-lg">
+                            <span class="text-gray-600">🖤</span>
+                            <span class="text-gray-600">🖤</span>
+                            <span class="text-gray-600">🖤</span>
+                            <span class="text-gray-600">🖤</span>
+                            <span class="text-gray-600">🖤</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hud-row2 mt-3 flex items-center justify-between text-xs font-semibold">
+                <span class="text-sky-300">🕕 Dia <span id="day-n">1</span> · <span id="clock" class="text-white font-extrabold text-sm">18:00</span></span>
+                <span class="text-amber-300">⭐ Nível <span id="lvl">1</span> · <span id="xp-txt" class="text-gray-300"></span></span>
+            </div>
+            <div class="hud-xp w-full bg-gray-800 rounded-full h-2 mt-1 overflow-hidden"><div id="xp-bar" class="bg-sky-400 h-2 rounded-full transition-all duration-300" style="width:0%"></div></div>
+            <!-- Progresso de Montagem na Bandeja -->
+            <div class="hud-tray mt-3">
+                <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                    <span class="text-amber-400 uppercase tracking-wide">Bandeja Atual</span>
+                    <span id="stack-count" class="text-gray-300">0 / 10 Ingredientes</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                    <div id="stack-bar" class="bg-amber-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <!-- Alerta de Limite Alcançado -->
+                <div id="limit-warning" class="hidden mt-2 p-1.5 bg-red-500/20 border border-red-500/50 rounded-lg text-center text-red-400 text-xs font-extrabold animate-pulse">
+                    ⚠️ BANDEJA CHEIA! (Máximo 10 itens)
+                </div>
+                <div id="tray-list" class="mt-2 text-xs text-gray-300 min-h-[22px] flex flex-wrap gap-1">
+                    <span class="text-gray-500 italic">Prato vazio</span>
+                </div>
+            </div>
+
+            <!-- Guia de Dicas do Pedido -->
+            <div class="hud-hint mt-3 p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl">
+                <div class="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+                    <span>💡 Dica de Montagem</span>
+                </div>
+                <div id="hint-recipe" class="text-sm font-semibold text-white">Aguardando cliente...</div>
+                <div id="hint-extra" class="text-xs text-amber-200 mt-1"></div>
+                <div id="hint-sequence" class="mt-2 flex flex-wrap gap-1 text-[11px]"></div>
+            </div>
+
+            <!-- Botão de Descarte -->
+            <button id="btn-trash" onclick="jogarFora()" class="pointer-events-auto mt-3 w-full py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 transition-all text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center gap-2">
+                <span>🗑️ Jogar no Lixo (Resetar Prato)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Instructions Banner -->
+    <div id="banner" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none bg-gray-900/80 backdrop-blur-md px-6 py-2.5 rounded-full border border-gray-700/50 text-xs font-semibold text-gray-200 shadow-xl text-center hidden sm:block">
+        👆 🥩 Chapa e 🍟 fritadeira: clique para começar e de novo para pegar · 🥓 clique no bacon para pô-lo na chapa e pegue quando estiver pronto · 🥤 pegue um copo, ele vai à máquina e enche; clique nela para retirar · clique no <span class="text-amber-400 font-bold">Cliente</span> para entregar!
+    </div>
+
+    <!-- Modal de Falência / Game Over -->
+    <div id="modal-bankrupt" class="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-900 border-2 border-red-500/80 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl glow-red">
+            <div class="text-6xl mb-3">💸</div>
+            <h2 class="text-3xl font-black text-red-500 uppercase tracking-tight mb-2">A LOJA FALIU!</h2>
+            <p class="text-gray-300 text-sm mb-6">Você atingiu 5 erros consecutivos de pedidos. A vigilância sanitária e os clientes fecharam sua lanchonete!</p>
+            <div class="bg-gray-800 p-4 rounded-2xl mb-6">
+                <span class="text-xs text-gray-400 uppercase tracking-wider font-semibold block">Faturamento Total</span>
+                <span class="text-3xl font-extrabold text-emerald-400">$<span id="final-money">0.00</span></span>
+            </div>
+            <p class="text-xs text-amber-400 font-semibold animate-bounce mb-4">Reiniciando o restaurante em <span id="restart-countdown">5</span> segundos...</p>
+        </div>
+    </div>
+
+    <div id="modal-day" class="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-900 border-2 border-amber-500/70 rounded-3xl p-7 max-w-md w-full shadow-2xl">
+            <div class="text-5xl mb-1 text-center">🌙</div>
+            <h2 id="day-title" class="text-xl font-black text-amber-400 uppercase text-center mb-3"></h2>
+            <div id="day-body" class="text-sm text-gray-200 space-y-1.5"></div>
+            <button onclick="nextDay()" class="mt-5 w-full py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 transition text-gray-900 font-extrabold uppercase rounded-xl">☀️ Começar próximo dia</button>
+        </div>
+    </div>
+    <div id="top-btns" class="fixed top-4 right-4 z-30 flex gap-2">
+        <button onclick="toggleHud()" title="Painel completo / compacto" class="w-10 h-10 rounded-full bg-gray-900/80 border border-gray-600 text-lg hover:bg-gray-700 active:scale-95">📋</button>
+        <button onclick="togglePause()" title="Pausa (P)" class="w-10 h-10 rounded-full bg-gray-900/80 border border-gray-600 text-lg hover:bg-gray-700 active:scale-95">⏸</button>
+        <button id="btn-mute" onclick="toggleMute()" title="Som" class="w-10 h-10 rounded-full bg-gray-900/80 border border-gray-600 text-lg hover:bg-gray-700 active:scale-95">🔊</button>
+        <button onclick="showAch()" title="Conquistas" class="w-10 h-10 rounded-full bg-gray-900/80 border border-gray-600 text-lg hover:bg-gray-700 active:scale-95">🏆</button>
+        <button onclick="showTut()" title="Como jogar" class="w-10 h-10 rounded-full bg-gray-900/80 border border-gray-600 text-lg hover:bg-gray-700 active:scale-95">❓</button>
+    </div>
+    <button id="btn-trash-fab" onclick="jogarFora()" title="Jogar no lixo (resetar prato)">🗑️</button>
+    <div id="toast-box" class="fixed top-20 left-1/2 -translate-x-1/2 z-40 flex flex-col gap-2 items-center pointer-events-none"></div>
+    <div id="modal-pause" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-gray-900 border-2 border-sky-500/60 rounded-3xl p-8 text-center shadow-2xl"><div class="text-5xl mb-2">⏸</div><h2 class="text-2xl font-black text-sky-400 uppercase mb-4">Pausado</h2>
+        <button onclick="togglePause()" class="px-8 py-3 bg-sky-500 hover:bg-sky-600 text-gray-900 font-extrabold uppercase rounded-xl">▶ Continuar</button></div>
+    </div>
+    <div id="modal-tut" class="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-900 border-2 border-amber-500/70 rounded-3xl p-6 max-w-lg w-full shadow-2xl max-h-[92vh] overflow-y-auto">
+            <h2 class="text-xl font-black text-amber-400 uppercase text-center mb-3">🍔 Como jogar</h2>
+            <ol class="text-sm text-gray-200 space-y-2 list-decimal list-inside">
+                <li><b>Monte o lanche:</b> clique nos potes na ordem do pedido (pão, carne, queijo… e o pão de cima).</li>
+                <li><b>Chapa 🥩:</b> clique para colocar a carne e clique de novo para pegar no ponto pedido.</li>
+                <li><b>Bacon 🥓:</b> clique no pote do bacon (ele fica "na mão"), clique na chapa e espere ficar <b>pronto</b>; depois clique nele para pegar. Queimou? Vai pro lixo.</li>
+                <li><b>Fritadeira 🍟:</b> clique para fritar e pegue quando estiver dourada.</li>
+                <li><b>Refri 🥤:</b> clique no copo do tamanho pedido, ele enche sozinho; clique nele para retirar.</li>
+                <li><b>Entregue:</b> clique no cliente. Acertou = dinheiro, gorjeta e XP. Errou ou demorou = ❌. Com 5 erros a loja fecha mais cedo.</li>
+                <li>Cada noite vai de 18:00 a 00:00. Suba de nível para liberar ingredientes. <b>P</b> pausa o jogo.</li>
+            </ol>
+            <button onclick="closeTut()" class="mt-5 w-full py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-gray-900 font-extrabold uppercase rounded-xl">Entendi, abrir a loja!</button>
+            <button id="btn-tut-practice" onclick="playTutorial()" class="mt-2 w-full py-2.5 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-extrabold uppercase rounded-xl">🎓 Fazer o tutorial prático</button>
+        </div>
+    </div>
+    <div id="modal-ach" class="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-gray-900 border-2 border-yellow-500/70 rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[92vh] overflow-y-auto">
+            <h2 class="text-xl font-black text-yellow-400 uppercase text-center">🏆 Conquistas</h2>
+            <div id="ach-best" class="text-center text-xs text-gray-400 mb-3"></div>
+            <div id="ach-list" class="space-y-2 text-sm"></div>
+            <button onclick="hideAch()" class="mt-4 w-full py-2.5 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-extrabold uppercase rounded-xl">Fechar</button>
+        </div>
+    </div>
+    <!-- TELA INICIAL -->
+    <div id="start-screen">
+        <div class="st-wrap">
+            <svg class="st-burger" viewBox="0 0 220 190" aria-hidden="true">
+                <defs>
+                    <linearGradient id="gBunT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset=".45" stop-color="#f59e0b"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+                    <linearGradient id="gBunB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f59e0b"/><stop offset="1" stop-color="#92400e"/></linearGradient>
+                    <linearGradient id="gPatty" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#92400e"/><stop offset="1" stop-color="#431407"/></linearGradient>
+                </defs>
+                <ellipse cx="110" cy="177" rx="84" ry="9" fill="#000" opacity=".35"/>
+                <path d="M30 142h160a18 18 0 0 1-18 28H48a18 18 0 0 1-18-28z" fill="url(#gBunB)"/>
+                <rect x="20" y="112" width="180" height="34" rx="17" fill="url(#gPatty)"/>
+                <path d="M26 104h168v10l-26 0-9 20-12-20H84l-8 12-10-12H26z" fill="#fbbf24"/>
+                <path d="M22 92q11-16 22 0t22 0 22 0 22 0 22 0 22 0 22 0 22 0v14H22z" fill="#84cc16" stroke="#65a30d" stroke-width="1.5"/>
+                <path d="M24 90C24 22 196 22 196 90z" fill="url(#gBunT)"/>
+                <ellipse cx="84" cy="48" rx="32" ry="9" fill="#fff" opacity=".22" transform="rotate(-18 84 48)"/>
+                <g fill="#fff3c4">
+                    <ellipse cx="80" cy="58" rx="6" ry="3" transform="rotate(-25 80 58)"/><ellipse cx="112" cy="48" rx="6" ry="3" transform="rotate(10 112 48)"/>
+                    <ellipse cx="140" cy="58" rx="6" ry="3" transform="rotate(30 140 58)"/><ellipse cx="62" cy="72" rx="6" ry="3" transform="rotate(-40 62 72)"/>
+                    <ellipse cx="96" cy="68" rx="6" ry="3" transform="rotate(15 96 68)"/><ellipse cx="128" cy="72" rx="6" ry="3" transform="rotate(-15 128 72)"/>
+                    <ellipse cx="158" cy="74" rx="6" ry="3" transform="rotate(40 158 74)"/><ellipse cx="80" cy="82" rx="6" ry="3" transform="rotate(20 80 82)"/>
+                    <ellipse cx="114" cy="82" rx="6" ry="3" transform="rotate(-20 114 82)"/><ellipse cx="146" cy="84" rx="6" ry="3" transform="rotate(10 146 84)"/>
+                </g>
+            </svg>
+            <div class="st-text">
+                <h1 class="st-title"><span class="t1">BURGUER</span><span class="t2">NOW</span></h1>
+                <p class="st-sub">Simulador de hamburgueria</p>
+                <div class="st-actions">
+                    <button class="btn-play" onclick="playNow()">Jogar</button>
+                    <div class="st-row">
+                        <button class="btn-ghost" onclick="showTut()">Como jogar</button>
+                        <button class="btn-ghost" onclick="showAch()">Conquistas</button>
+                        <button id="btn-full" class="btn-ghost" onclick="goFull()">Tela cheia</button>
+                    </div>
+                    <p class="st-rotate">📱 Gire o celular para a horizontal para jogar melhor</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- TUTORIAL PRÁTICO -->
+    <div id="tut-ring" class="hidden"></div>
+    <div id="tut-coach" class="hidden" role="dialog" aria-live="polite">
+        <div class="tc-top"><span id="tc-step"></span><button id="tc-skip" type="button">Pular tutorial</button></div>
+        <h3 id="tc-title"></h3>
+        <p id="tc-text"></p>
+        <button id="tc-next" type="button" class="hidden"></button>
+    </div>
+    <!-- Importando Three.js r128 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script src="game.js"></script>
+</body>
+</html>
