@@ -87,8 +87,8 @@
 
     <!-- Modal de Falência / Game Over -->
     <div id="modal-bankrupt" class="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-gray-900 border-2 border-red-500/80 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl glow-red">
-            <div class="text-6xl mb-3">💸</div>
+        <div class="modal-card bg-gray-900 border-2 border-red-500/80 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl glow-red">
+            <div class="mc-emoji text-6xl mb-3">💸</div>
             <h2 class="text-3xl font-black text-red-500 uppercase tracking-tight mb-2">A LOJA FALIU!</h2>
             <p class="text-gray-300 text-sm mb-6">Você atingiu 5 erros consecutivos de pedidos. A vigilância sanitária e os clientes fecharam sua lanchonete!</p>
             <div class="bg-gray-800 p-4 rounded-2xl mb-6">
@@ -100,11 +100,11 @@
     </div>
 
     <div id="modal-day" class="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-gray-900 border-2 border-amber-500/70 rounded-3xl p-7 max-w-md w-full shadow-2xl">
-            <div class="text-5xl mb-1 text-center">🌙</div>
+        <div class="modal-card bg-gray-900 border-2 border-amber-500/70 rounded-3xl p-7 max-w-md w-full shadow-2xl">
+            <div class="mc-emoji text-5xl mb-1 text-center">🌙</div>
             <h2 id="day-title" class="text-xl font-black text-amber-400 uppercase text-center mb-3"></h2>
-            <div id="day-body" class="text-sm text-gray-200 space-y-1.5"></div>
-            <button onclick="nextDay()" class="mt-5 w-full py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 transition text-gray-900 font-extrabold uppercase rounded-xl">☀️ Começar próximo dia</button>
+            <div id="day-body" class="mc-body text-sm text-gray-200 space-y-1.5"></div>
+            <button onclick="nextDay()" class="mc-btn mt-5 w-full py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 transition text-gray-900 font-extrabold uppercase rounded-xl">☀️ Começar próximo dia</button>
         </div>
     </div>
     <div id="top-btns" class="fixed top-4 right-4 z-30 flex gap-2">
